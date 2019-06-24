@@ -1,0 +1,118 @@
+<% include ../partials/header %>
+<div class="row">
+  <div class="col-md-3">
+    <div id="map"></div>
+  </div>
+  <div class="col-md-9">
+    <div class="card mb-3">
+      <img class="card-img-top" src="<%= campground.image %>" alt="<%= campground.name %>">
+      <div class="card-body">
+        <p class="float-right">
+          $<%= campground.cost %>/night
+        </p>
+        <h5 class="card-title"><%= campground.name %></h5>
+        <p>
+          <em>Submitted by: <%= campground.author.username %>, <%= moment(campground.createdAt).fromNow() %></em>
+        </p>
+        <hr>
+        <p class="card-text"><%= campground.description %></p>
+        <% if(currentUser && campground.author.id.equals(currentUser._id) || currentUser && currentUser.isAdmin){ %>
+        <a class="btn btn-warning" href="/campgrounds/<%= campground._id %>/edit">Edit</a>
+        <form action="/campgrounds/<%= campground._id %>?_method=DELETE" method="POST" class="delete-form">
+          <button class="btn btn-danger">Delete</button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="text-right">
+          <a class="btn btn-success" href="/campgrounds/<%= campground._id %>/comments/new">Add New Comment</a>
+        </div>
+        <hr>
+        <div class="row">
+          <% campground.comments.forEach(function(comment){ %>
+
+          <div class="col-md-12 mb-2">
+            <div class="card">
+              <div class="card-body">
+                <div class="float-left">
+                  <p class="card-title"><strong><%= comment.author.username %></strong></p>
+                  <p class="card-text"><%= comment.text %></p>
+                </div>
+                <div class="float-right">
+                  <p><%= moment(comment.createdAt).fromNow() %></p>
+                  <% if(currentUser && comment.author.id.equals(currentUser._id) || currentUser && currentUser.isAdmin){ %>
+                  <div class="float-right">
+                    <a href="/campgrounds/<%=campground._id%>/comments/<%=comment._id%>/edit"
+                      class="btn btn-sm btn-warning">EDIT</a>
+                    <form class="delete-form"
+                      action="/campgrounds/<%=campground._id%>/comments/<%=comment._id%>?_method=DELETE" method="POST">
+                      <button class="btn btn-sm btn-danger">DELETE</button>
+                    </form>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.3.0/mapbox-gl-geocoder.min.js'></script>
+<link rel='stylesheet'
+  href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.3.0/mapbox-gl-geocoder.css' type='text/css' />
+<div id="map"></div>
+<script>
+  var lat = <%= campground.lat %>;
+  var lng = <%= campground.lng %>;
+  var center = { lat: lat, lng: lng };
+  mapboxgl.accessToken = 'pk.eyJ1IjoibmFqZHVkZSIsImEiOiJjandwdHZleWIwejVtM3pxYjh2MjVqdjZhIn0.3GuWWkFW2jIQoi02Hc_niA';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: center,
+    zoom: 13
+
+  });
+  map.on("load", function () {
+    /* Image: An image is loaded and added to the map. */
+    map.loadImage("https://i.imgur.com/MK4NUzI.png", function (error, image) {
+      if (error) throw error;
+      map.addImage("custom-marker", image);
+      /* Style layer: A style layer ties together the source and image and specifies how they are displayed on the map. */
+      map.addLayer({
+        id: "markers",
+        type: "symbol",
+        /* Source: A data source specifies the geographic coordinate where the image marker gets placed. */
+        source: {
+          type: "geojson",
+          data: {
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: "Point",
+                  coordinates: [lng, lat]
+                }
+              }
+            ]
+          }
+        },
+        layout: {
+          "icon-image": "custom-marker",
+        }
+      });
+    });
+  });
+
+
+</script>
+
+<% include ../partials/footer %>
