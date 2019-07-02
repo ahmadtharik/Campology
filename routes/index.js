@@ -42,7 +42,7 @@ router.post("/login", passport.authenticate("local",
         successRedirect: "/campgrounds",
         failureRedirect: "/login",
         failureFlash: true,
-        successFlash: 'Welcome to Campology!'
+        successFlash: 'Welcome to Campverse!'
     }), function(req, res){
 });
 
